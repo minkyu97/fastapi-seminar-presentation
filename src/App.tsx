@@ -4,6 +4,7 @@ import "reveal.js/dist/reveal.css";
 import "reveal.js/dist/theme/black.css";
 import RevealMarkdown from "reveal.js/plugin/markdown/markdown";
 import "./App.css";
+import Seminar0 from "./slides/seminar0";
 
 function App() {
   const deckDivRef = useRef<HTMLDivElement>(null); // reference to deck container div
@@ -39,8 +40,7 @@ function App() {
     // our parent element. Make sure the parent is not 0-height.
     <div className="reveal" ref={deckDivRef}>
       <div className="slides">
-        <section>Slide 1</section>
-        <section>Slide 2</section>
+        <Seminar0 />
       </div>
     </div>
   );
