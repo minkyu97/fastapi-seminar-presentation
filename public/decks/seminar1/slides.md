@@ -129,10 +129,13 @@ Content-Type: application/json; charset=utf-8
 - 자주 사용하는 메서드들은 별도의 데코레이터 팩토리로 구현되어 있다.
 
 <div class="fragment">
-<pre class="code-wrapper"><code class="hljs language-python">@app.api_route("/brands/10/items/{items_id}", methods=["GET", "PUT", "HOIZZA"])</code></pre>
-<ul>
-<li>사용자 정의 HTTP Method 를 사용하거나, 여러 Method 를 허용하려고 할 때에는 범용 데코레이터 팩토리인 `app.api_route`를 사용한다.</li>
-</ul>
+
+```python
+@app.api_route("/brands/10/items/{items_id}", methods=["GET", "PUT", "HOIZZA"])
+```
+
+- 사용자 정의 HTTP Method 를 사용하거나, 여러 Method 를 허용하려고 할 때에는 범용 데코레이터 팩토리인 `app.api_route`를 사용한다.
+
 </div>
 
 ---
@@ -384,6 +387,38 @@ class Item(BaseModel):
 
 ---
 
+<!-- .slide: data-auto-animate -->
+
+# 1. HTTP Request 를 받아보자!
+
+## 야생의 Request
+
+```python
+@app.post("/items", status_code=status.HTTP_201_CREATED)
+async def create_item(request: Request):
+  print(request.method)
+  print(request.url)
+  print(request.headers)
+  print(request.query_params)
+  print(await request.body())
+  ...
+```
+
+- 흔하진 않지만, 다양한 이유로 `Request` 객체가 직접 필요할 수 있음
+- `Request` 객체에는 거의 날 것의 Request Message 를 포함해서 다양한 메타데이터가 포함되어 있음
+
+
+```accesslog
+POST
+http://localhost:8000/items?some_key=some_value
+Headers({'host': 'localhost:8000', 'user-agent': 'curl/8.7.1', 'accept': '*/*', 'some-header': 'Some Value', 'content-type': 'application/json', 'content-length': '27'})
+some_key=some_value
+b'{"some_json": "some_value"}'
+```
+<!-- .element: class="fragment" -->
+
+---
+
 <!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
 
 # 2. HTTP Response 를 보내보자!
@@ -404,8 +439,67 @@ Content-Length: 26
 {"message": "Hello World"}
 ```
 
+<!-- .element: data-id="code" -->
+
 - 마찬가지로 US-ASCII 로 인코딩되어 있다.
 - Status Line, Headers, Body 로 구성되어 있다.
+- 첫 번째 줄을 제외하면 Request Message 와 크게 다르지 않다.
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Response Body
+
+```http [5]
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 26
+
+{"message": "Hello World"}
+```
+
+<!-- .element: data-id="code" -->
+
+- Request Body 와 크게 다르지 않음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Response Body
+
+```python
+class Item(BaseModel):
+  name: str
+  price: float
+  brand_id: int
+
+@app.get("/item", status_code=status.HTTP_200_OK)
+def get_item() -> Item:
+  return Item(name="iPhone", price=1000, brand_id=1)
+```
+
+- Request Body 가 알아서 역직렬화가 되었듯, Response Body 도 자동으로 직렬화가 됨
+
+<div class="fragment">
+
+```python
+class Items(BaseModel):
+  items: List[Item]
+
+@app.get("/items", status_code=status.HTTP_200_OK)
+def get_items() -> Items:
+  return Items(items=[Item(name="iPhone", price=1000, brand_id=1)])
+```
+
+- Model 을 중첩해서 깊은 구조의 JSON 을 반환할 수 있음 ([Nested Model](https://docs.pydantic.dev/latest/concepts/models/#nested-models))
+
+</div>
 
 ---
 
@@ -415,12 +509,44 @@ Content-Length: 26
 
 ## Status Code
 
-> HTTP/1.1 <span class="fragment highlight">200 OK</span>
+> HTTP/1.1 <span class="fragment custom highlight">200 OK</span>
 
 - Status Code = Status Line 의 두 번째 Token
-- Status Code 는 서버의 응답 상태를 나타내며, 첫 번째 숫자에 따라 다음과 같이 구분됨
+- Status Code 뒤에는 Status Message 가 붙지만, 실제로는 큰 의미 없음
+- Status Code 는 서버의 응답 상태를 나타내며, 첫 번째 숫자에 따라 다음과 같이 구분됨 <!-- .element: class="fragment" -->
   - 1xx: Informational
-  - 2xx: Success
+  - 2xx: Successful
   - 3xx: Redirection
   - 4xx: Client Error
   - 5xx: Server Error
+  - [RFC 7231](https://datatracker.ietf.org/doc/html/rfc7231#section-6) 또는 [MDN](https://developer.mozilla.org/ko/docs/Web/HTTP/Status) 참조
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Status Code
+
+```python
+@app.get("/items/{item_id}", status_code=status.HTTP_200_OK)
+def read_item(item_id: int):
+  return get_item_by_id(item_id)
+```
+
+- 엔드포인트의 데코레이터에 `status_code` 를 지정할 수 있음
+- 기본값은 200 OK 이며, 다른 상태 코드를 지정할 수 있음
+
+<div class="fragment">
+
+```python
+@app.get("/items/{item_id}")
+def read_item(item_id: int):
+  return JSONResponse(content=get_item_by_id(item_id), status_code=status.HTTP_200_OK)
+```
+
+- 반환값이 여러 개이고 각각 다른 상태 코드를 지정해야 할 때에는 `Response`, `JSONResponse` 등을 이용
+- 하지만, 후자의 경우에는 API 문서에 자동으로 반영되지 않음
+
+</div>
