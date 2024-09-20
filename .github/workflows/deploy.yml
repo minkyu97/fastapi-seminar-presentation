@@ -37,7 +37,7 @@ jobs:
         run: yarn install
       - name: Build with yarn
         run: |
-          yarn build --base fastapi-seminar-presentaion
+          yarn build --base fastapi-seminar-presentation
           mv dist/src/* dist/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

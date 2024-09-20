@@ -381,3 +381,46 @@ class Item(BaseModel):
 - model_config 를 통해 모델의 옵션을 지정할 수 있음
   - v1 에서는 `Config` 클래스를 이용해서 모델 전체의 옵션을 지정할 수 있었음
   - fastapi 버전에 따라 Pydantic 버전도 달라지므로, 사용하는 버전에 유의할 것
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
+
+# 2. HTTP Response 를 보내보자!
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## HTTP Response 는 어떻게 생겼나
+
+```http [0|1|2-3|5]
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 26
+
+{"message": "Hello World"}
+```
+
+- 마찬가지로 US-ASCII 로 인코딩되어 있다.
+- Status Line, Headers, Body 로 구성되어 있다.
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Status Code
+
+> HTTP/1.1 <span class="fragment highlight">200 OK</span>
+
+- Status Code = Status Line 의 두 번째 Token
+- Status Code 는 서버의 응답 상태를 나타내며, 첫 번째 숫자에 따라 다음과 같이 구분됨
+  - 1xx: Informational
+  - 2xx: Success
+  - 3xx: Redirection
+  - 4xx: Client Error
+  - 5xx: Server Error
