@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build:dev": "vite build --base /dist",
+    "build:prod": "vite build --base /fastapi-seminar-presentation",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "yarn build:dev && vite preview --base /dist"
   },
   "dependencies": {
     "reveal.js": "^5.1.0"

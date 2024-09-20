@@ -7,15 +7,17 @@ import { defineConfig } from "vite";
 export default defineConfig({
   build: {
     rollupOptions: {
-      input: Object.fromEntries(
-        globSync("src/**/*.html").map((file) => [
+      input: {
+        "main": "index.html",
+        ...Object.fromEntries(
+        globSync("decks/**/*.html").map((file) => [
           path.relative(
-            "src",
+            "decks",
             file.slice(0, file.length - path.extname(file).length)
           ),
           fileURLToPath(new URL(file, import.meta.url)),
         ])
-      ),
+      )},
     },
   },
 });
