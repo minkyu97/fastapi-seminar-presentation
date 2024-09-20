@@ -38,7 +38,8 @@ jobs:
       - name: Build with yarn
         run: |
           yarn build --base fastapi-seminar-presentation
-          mv dist/src/* dist/
+          cp -r dist/src/* dist/
+          rm -rf dist/src
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

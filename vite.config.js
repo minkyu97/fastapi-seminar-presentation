@@ -5,7 +5,6 @@ import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  assetsInclude: ["**/*.md"],
   build: {
     rollupOptions: {
       input: Object.fromEntries(
