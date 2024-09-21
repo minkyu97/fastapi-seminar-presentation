@@ -21,9 +21,7 @@ By: 이민규
 3. 의존성 주입
 4. 에러 핸들링
 5. 미들웨어
-6. 백그라운드 태스크
-7. API 문서 강화하기
-8. 데이터베이스 활용하기
+6. 데이터베이스 활용하기
 
 ---
 
@@ -126,7 +124,7 @@ Content-Type: application/json; charset=utf-8
 @app.patch("/brands/10/items/{item_id}", status_code=status.HTTP_200_OK)
 ```
 
-- 자주 사용하는 메서드들은 별도의 데코레이터 팩토리로 구현되어 있다.
+- 자주 사용하는 메서드들은 별도의 데코레이터 팩토리로 구현되어 있다. (Path Operation Decorator)
 
 <div class="fragment">
 
@@ -479,7 +477,7 @@ class Item(BaseModel):
   price: float
   brand_id: int
 
-@app.get("/item", status_code=status.HTTP_200_OK)
+@app.get("/item")
 def get_item() -> Item:
   return Item(name="iPhone", price=1000, brand_id=1)
 ```
@@ -492,7 +490,7 @@ def get_item() -> Item:
 class Items(BaseModel):
   items: List[Item]
 
-@app.get("/items", status_code=status.HTTP_200_OK)
+@app.get("/items")
 def get_items() -> Items:
   return Items(items=[Item(name="iPhone", price=1000, brand_id=1)])
 ```
@@ -500,6 +498,43 @@ def get_items() -> Items:
 - Model 을 중첩해서 깊은 구조의 JSON 을 반환할 수 있음 ([Nested Model](https://docs.pydantic.dev/latest/concepts/models/#nested-models))
 
 </div>
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Headers
+
+```http [0|2-3]
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 26
+
+{"message": "Hello World"}
+```
+
+- Request Header 와 크게 다르지 않음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Headers
+
+```python
+from fastapi.responses import JSONResponse
+
+@app.get("/item")
+def get_item():
+  return JSONResponse(content={"message": "Hello World"}, headers={"X-Custom-Header": "Custom Value"})
+```
+
+- `fastapi.responses` 모듈을 이용해서 Response Body 와 Header 를 동시에 지정할 수 있음
+- `headers` 는 `dict` 형태로 전달
 
 ---
 
@@ -529,24 +564,398 @@ def get_items() -> Items:
 
 ## Status Code
 
-```python
+```python [1:]
+from fastapi import status
+
 @app.get("/items/{item_id}", status_code=status.HTTP_200_OK)
 def read_item(item_id: int):
   return get_item_by_id(item_id)
 ```
+<!-- .element: data-id="code" -->
 
 - 엔드포인트의 데코레이터에 `status_code` 를 지정할 수 있음
-- 기본값은 200 OK 이며, 다른 상태 코드를 지정할 수 있음
+- 정수로 지정할 수도 있지만, `fastapi.status` 를 이용해서 더 명시적으로 지정할 수 있음
+- 기본값은 200 OK
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Status Code
+
+
+```python [1:]
+from fastapi import status
+from fastapi.responses import JSONResponse
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int):
+  return JSONResponse(content=..., status_code=status.HTTP_200_OK)
+```
+<!-- .element: data-id="code" -->
+
+- 반환값이 여러 개이고 각각 다른 상태 코드를 지정해야 할 때에는 `fastapi.responses` 모듈을 이용
+- 하지만 이 방법은 API 문서에 자동으로 반영되지 않음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Redirect
+
+```python
+from fastapi.responses import RedirectResponse
+
+@app.get("/redirect")
+def redirect():
+  return RedirectResponse(url="/items")
+```
+
+- `RedirectResponse` 를 이용해서 리다이렉트 응답을 보낼 수 있음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 2. HTTP Response 를 보내보자!
+
+## Response Object
+
+```python
+from fastapi.responses import Response
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int):
+  response = Response(content="Hello World", status_code=200)
+  response.headers["X-Custom-Header"] = "Custom Value"
+  return response
+```
+
+- `Response` 객체를 이용해서 직접 Response 를 생성할 수 있음
+- 주입받은 `Response` 객체는 반환을 생략할 수 있음
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
+
+# 3. 의존성 주입
+
+---
+
+<!-- .slide: data-auto-animate -->
+# 3. 의존성 주입
+
+## 배경 지식 - 의존성 주입이란?
+
+- 의존성 주입(Dependency Injection)은 객체 지향 프로그래밍에서 사용되는 디자인 패턴
+- 객체의 생성을 외부에 위임하여, 객체 간의 의존 관계를 느슨하게 만든다.
+- 인터페이스에 의존하는 설계로 객체 간의 결합도를 낮추어 유지보수성, 테스트 용이성을 높인다.
+
+---
+
+<!-- .slide: data-auto-animate -->
+# 3. 의존성 주입
+
+## 배경 지식 - 의존성 주입이란?
+
+- FastAPI 에서 의존성이란 다음과 같이 정의할 수 있다.<br/>(⚠️ 아래 정의는 공식 문서에 있는 건 아니고 공식 문서를 토대로 한 세미나장 뇌피셜)
+``` ebnf
+depandable ::= primitive_dependency | callable_dependency
+primitive_dependency ::= Request | Response | Path | Query | ...
+callable_dependency ::= Callable[...dependable, Any]
+```
+- `dependable` 을 통해 의존성을 주입받을 수 있음
+- `primitive_dependency` 는 FastAPI 에서 제공하는 기본적인 의존성 (앞서 배운 것들이 대표적)
+- `callable_dependency` 는 사용자 정의 의존성을 주입받을 수 있음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## primitive dependency
+
+```python
+from fastapi import FastAPI, Request, Path, Query, Header
+
+@app.get("/items/{item_id}")
+def read_item(
+  request: Request,
+  item_id: int = Path(...),
+  min_price: int = Query(0),
+  user_agent: str = Header(None),
+):
+  ...
+```
+
+- 앞서 배운 `Request`, `Path`, `Query`, `Header` 등 FastAPI 에서 제공하는 기본적인 의존성을 주입
+- 이 의존성들은 별도로 정의해줄 필요 없이 바로 사용 가능
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## Callable Dependency
+
+```python
+from fastapi import Depends
+
+def get_db():
+  db = DBSession()
+  try:
+    yield db
+  finally:
+    db.close()
+
+@app.get("/items")
+def read_items(db: DBSession = Depends(get_db)):
+  ...
+```
+
+- `Depends` 를 이용해서 명시적으로 의존성을 주입받을 함수나 객체를 지정할 수 있음
 
 <div class="fragment">
 
-```python
-@app.get("/items/{item_id}")
-def read_item(item_id: int):
-  return JSONResponse(content=get_item_by_id(item_id), status_code=status.HTTP_200_OK)
-```
-
-- 반환값이 여러 개이고 각각 다른 상태 코드를 지정해야 할 때에는 `Response`, `JSONResponse` 등을 이용
-- 하지만, 후자의 경우에는 API 문서에 자동으로 반영되지 않음
+- `Depends` 안에 인자가 없다면 타입 자체가 dependable 해야함
+  - 즉, 생성자의 모든 인자가 dependable 해야함 (혹은 인자가 없거나)
 
 </div>
+
+--- 
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## Sub Dependency
+
+```python
+from fastapi import Depends
+
+def get_db():
+  db = DBSession()
+  try:
+    yield db
+  finally:
+    db.close()
+
+def get_current_user(db: DBSession = Depends(get_db)):
+  user = db.query(User).filter(User.id == 1).first()
+  return user
+
+@app.get("/items")
+def read_items(user: User = Depends(get_current_user)):
+  ...
+```
+
+- 의존성은 여러 번 중첩해서 사용할 수 있음
+- 이를 통해 의존성을 계층적으로 관리할 수 있고, 재사용성을 높일 수 있음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## path operation decorator 에서의 의존성 주입
+
+```python
+from fastapi import Depends
+
+@app.get("/some_api", dependencies=[Depends(get_current_user)])
+def some_api_required_auth():
+  ...
+```
+
+- 직접 유저 객체를 사용하진 않지만 인증이 필요한 API가 있을 수 있음
+- 이렇듯 간접적으로 사용되는 의존성은 경로 데이터에 제공함으로써 복잡성을 줄일 수 있음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## Global Dependency
+
+```python
+from fastapi import FastAPI, Depends
+
+app = FastAPI(dependencies=[Depends(get_current_user)])
+```
+
+- `FastAPI` 객체를 생성할 때, `dependencies` 를 지정해서 모든 엔드포인트에 의존성을 주입할 수 있음
+- 혹은, 나중에 배울 `Router` 를 이용해서 특정 라우터에만 의존성을 주입할 수도 있음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## Dependency Generator
+
+```python
+from fastapi import Depends
+
+def get_db():
+  db = DBSession()
+  try:
+    yield db
+  finally:
+    db.close()
+```
+
+- 앞선 예시에서 `get_db` 함수는 제너레이터 함수로 구현되어 있음
+- 이를 통해, 의존성을 생성하고 제거하는 과정을 명시적으로 제어할 수 있음
+- 이는 FastAPI 내부적으로 컨텍스트 매니저를 사용하여 구현됨
+
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 3. 의존성 주입
+
+## Dependency Generator
+
+```python
+def get_A():
+  try:
+    yield make_A()
+  finally:
+    ... # clean up A after return response
+
+def get_B(a: A = Depends(get_A)):
+  try:
+    yield make_B(a)
+  finally:
+  ... # clean up B after clean up A
+
+def get_C(b: B = Depends(get_B)):
+  try:
+    yield make_C(b)
+  finally:
+    ... # clean up C after clean up B
+
+@app.get("/items")
+def read_items(c: C = Depends(get_C)):
+  ...
+```
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
+
+# 4. 에러 핸들링
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 4. 에러 핸들링
+
+## 에러란?
+
+
+- 프로그램은 언제나 오류가 발생할 수 있다.
+- 서버에서 발생하는 오류가 발생하는 원인은 크게 두 가지로 나뉜다.
+  - 클라이언트의 잘못된 요청 (Client Error)
+  - 서버의 잘못된 처리 (Server Error)
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 4. 에러 핸들링
+
+## Client Error
+
+- 클라이언트의 잘못된 요청에 대한 응답은 4xx 응답 코드를 사용한다.
+- 잘못된 요청의 예는 다음과 같다.
+  - 존재하지 않는 경로 (404 Not Found)
+  - 잘못된 요청 형식 (400 Bad Request)
+  - 인증이 필요한 요청 (401 Unauthorized)
+  - 권한이 없는 요청 (403 Forbidden)
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 4. 에러 핸들링
+
+## Server Error
+
+- 서버의 잘못된 처리에 대한 응답은 5xx 응답 코드를 사용한다.
+- 서버 오류는 일시적인 오류일 수도 있고, 영구적인 오류일 수도 있다.
+- 일시적인 오류라면 `Retry-After` 헤더를 통해 재시도를 권장할 수 있다.
+- 서버 오류의 예는 다음과 같다.
+  - 서버 내부 오류 (500 Internal Server Error)
+  - 서버가 처리할 수 없는 요청 (501 Not Implemented)
+  - 서버가 과부하 상태 (503 Service Unavailable)
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 4. 에러 핸들링
+
+## HTTPException
+
+```python
+from fastapi import HTTPException
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int):
+  if item_id == 0:
+    raise HTTPException(status_code=404, detail="Item not found")
+  return {"item_id": item_id}
+```
+
+- `HTTPException` 를 이용해서 명시적으로 에러를 발생시킬 수 있다.
+- 직접 `Response` 를 반환하지 않는 것이 좋다.
+  - 예외를 던지면 FastAPI 내장 에러 핸들러가 이를 처리해주기 때문
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 4. 에러 핸들링
+
+## Exception Handler
+
+```python
+@app.exception_handler(MyException)
+async def http_exception_handler(request, exc):
+  return JSONResponse(
+    status_code=500,
+    content={"detail": exc.detail},
+  )
+```
+
+- `exception_handler` 를 이용해서 특정 예외나 상탴 코드에 대해 내장 에러 핸들러를 오버라이드할 수 있다.
+- 해당 데코레이터 팩토리에는 하나의 예외 타입만 지정할 수 있으므로, 여러 개의 예외를 처리하려면
+  - 여러 예외 핸들러를 등록하거나,
+  - 부모 클래스로 묶어서 처리할 수 있다.
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
+
+# 5. 미들웨어
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 5. 미들웨어
+
+## 미들웨어란?
+

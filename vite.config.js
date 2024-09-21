@@ -10,7 +10,7 @@ function SlidesHmr() {
     // HMR
     handleHotUpdate({ file, server }) {
       if (file.endsWith(".md")) {
-        console.log("reloading markdown...");
+        server.config.logger.info(`Reloading ${file}`);
 
         server.ws.send({
           type: "full-reload",
