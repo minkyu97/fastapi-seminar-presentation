@@ -96,6 +96,47 @@ pre.code-wrapper {
   align-items: center;
 }
 
+.image-wrapper {
+  display: flex;
+  
+  p {
+    margin: 0;
+  }
+
+  img {
+    width: auto;
+    height: 100%;
+  }
+
+  &.center {
+    justify-content: center;
+  }
+
+  &.left {
+    justify-content: flex-start;
+  }
+
+  &.right {
+    justify-content: flex-end;
+  }
+
+  &.small {
+    height: 30%;
+  }
+
+  &.medium {
+    height: 50%;
+  }
+
+  &.large {
+    height: 70%;
+  }
+
+  &.full {
+    height: 100%;
+  }
+}
+
 .visible,
 :not(.fragment) {
   &.highlight {

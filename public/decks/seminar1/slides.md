@@ -16,12 +16,13 @@ By: 이민규
 
 # Table of Contents
 
+<br/>
+
 1. HTTP Request 를 받아보자!
 2. HTTP Response 를 보내보자!
 3. 의존성 주입
 4. 에러 핸들링
-5. 미들웨어
-6. 데이터베이스 활용하기
+5. 서버를 띄워보자!
 
 ---
 
@@ -826,7 +827,7 @@ def get_db():
 
 ## Dependency Generator
 
-```python
+```python [0|19-21|1-3|7-9|13-15|19-21|16-17|10-11|4-5]
 def get_A():
   try:
     yield make_A()
@@ -949,13 +950,89 @@ async def http_exception_handler(request, exc):
 
 <!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
 
-# 5. 미들웨어
+# 5. 서버를 띄워보자!
 
 ---
 
 <!-- .slide: data-auto-animate -->
 
-# 5. 미들웨어
+# 5. 서버를 띄워보자!
 
-## 미들웨어란?
+## uvicorn
 
+<div class="image-wrapper center small" style="height:30%; margin-bottom: 3rem;">
+
+![fastapi logo](./fastapi.png)
+
+![uvicorn logo](./uvicorn.png)
+
+</div>
+
+- FastAPI 는 ASGI 애플리케이션이다.
+- **uvicorn**: ASGI 프로토콜을 지원하는 가장 대표적인 애플리케이션 서버
+
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 5. 서버를 띄워보자!
+
+## uvicorn
+
+```bash
+# uvicorn <경로>:<ASGI app 변수명> [OPTIONS]
+uvicorn src.main:app --reload
+```
+
+- 쉘에서 `uvicorn` 명령어를 통해 FastAPI 애플리케이션을 실행할 수 있다.
+- 몇 가지 유용한 옵션들
+  - `--reload` 옵션을 통해 코드 변경 시 자동으로 서버를 재시작할 수 있다. (Hot Reloading)
+  - `--host`, `--port` 옵션을 통해 호스트와 포트를 지정할 수 있다.
+
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 5. 서버를 띄워보자!
+
+## Cloud Computing
+
+![cloud computing](./cloud_computing.png)
+
+- 만약 내 컴퓨터에 서버를 띄운다면, 외부에서 접속하기 위해 컴퓨터를 24시간 켜두어야 한다.
+- 전용 서버를 구축하자니, 초기 비용이 너무 많이 들고 Scaling 이 어렵다.
+- 이에 대한 대안이 클라우드 서비스 (Off-Premises)
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 5. 서버를 띄워보자!
+
+## AWS EC2
+
+<div class="image-wrapper center small" style="margin-bottom: 3rem;">
+
+![AWS EC2](./ec2.png)
+
+</div>
+
+- AWS 는 가장 대표적인 클라우드 서비스 제공 업체
+- EC2 는 AWS 의 가상 서버 서비스
+- EC2 인스턴스를 생성해서 가상 서버를 띄우고, FastAPI 애플리케이션을 배포할 수 있다.
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate -->
+
+# 5. 서버를 띄워보자!
+
+## (실습)
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate data-auto-animate-restart -->
+
+# Q&A
