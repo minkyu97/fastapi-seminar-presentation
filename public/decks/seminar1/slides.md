@@ -729,7 +729,7 @@ def read_items(db: DBSession = Depends(get_db)):
 
 </div>
 
---- 
+---
 
 <!-- .slide: data-auto-animate -->
 
