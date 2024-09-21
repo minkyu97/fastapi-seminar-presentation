@@ -999,7 +999,11 @@ uvicorn src.main:app --reload
 
 ## Cloud Computing
 
+<div class="image-wrapper center medium" style="margin-bottom: 1rem;">
+
 ![cloud computing](./cloud_computing.png)
+
+</div>
 
 - 만약 내 컴퓨터에 서버를 띄운다면, 외부에서 접속하기 위해 컴퓨터를 24시간 켜두어야 한다.
 - 전용 서버를 구축하자니, 초기 비용이 너무 많이 들고 Scaling 이 어렵다.
