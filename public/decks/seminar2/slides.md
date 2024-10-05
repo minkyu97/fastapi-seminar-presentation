@@ -18,10 +18,81 @@ By: 이민규
 
 <br/>
 
+0. 과제 1 리뷰
 1. 데이터베이스란?
 2. SQL
 3. SQLAlchemy
 4. FastAPI와 SQLAlchemy 연동
+
+---
+
+<!-- .slide: class="section-title" data-auto-animate -->
+
+# 0. 과제 1 리뷰
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 0. 과제 1 리뷰
+
+## 과제 1 스펙
+
+- FastAPI를 사용하여 간단한 API 서버를 구축
+- 데이터를 인메모리에 저장하고 조회하는 기능 구현
+- 간단한 헤더 인증 시스템 구현
+- EC2 인스턴스에 배포
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 0. 과제 1 리뷰
+
+## HTTP Client
+
+- Browser 도 HTTP Client 의 일종이지만, 제약이 많아서 테스트에는 부적합
+- 대안
+  - python `requests` 라이브러리를 사용하여 테스트하는 방법
+  - Postman, Insomnia 등의 GUI Client 를 사용하는 방법
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 0. 과제 1 리뷰
+
+## Python ``requests`` 라이브러리
+
+```python [0|3|4|5|6]
+import requests
+
+response = requests.patch(
+    "http://localhost:8000/api/users/me",
+    headers={"X-Wapang-Username": "test", "X-Wapang-Password": "test"},
+    json={"phone_number": "01089642457"},
+)
+print(response.json())
+```
+
+- `get`, `post`, `put`, `patch`, `delete` 등의 HTTP 메서드가 파이썬 메서드로 정의되어 있음
+- `headers` 에 헤더를, `json` 에 JSON 데이터를 넣어 요청을 보낼 수 있음
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 0. 과제 1 리뷰
+
+## Postman
+
+![Postman](postman.png) <!-- .element: style="width: 50%" -->
+
+<br>
+
+- GUI 기반의 HTTP Client
+- 다양한 기능을 제공하며, 테스트하기 편리함
+- Collection, Environment, Test 등의 기능을 사용하여 테스트를 자동화할 수 있음
 
 ---
 
@@ -82,7 +153,7 @@ By: 이민규
 
 <br/>
 
-$$ 
+$$
 \begin{align*}
 &\pi_{name, age}(\sigma_{age > 20}(Person)) \newline
 &\pi_{\text{studentId, name, age}}\left(\sigma_{\text{age}\geq36}\left(\text{Student}\right)\right)
@@ -119,14 +190,14 @@ $$
 ## DML, DDL, DCL
 
 - DML(Data Manipulation Language)
-    - 데이터를 조작하는 언어
-    - SELECT, INSERT, UPDATE, DELETE 등
+  - 데이터를 조작하는 언어
+  - SELECT, INSERT, UPDATE, DELETE 등
 - DDL(Data Definition Language)
-    - 데이터베이스 스키마를 정의하는 언어
-    - CREATE, ALTER, DROP 등
+  - 데이터베이스 스키마를 정의하는 언어
+  - CREATE, ALTER, DROP 등
 - DCL(Data Control Language)
-    - 데이터베이스에 대한 권한을 제어하는 언어
-    - GRANT, REVOKE 등
+  - 데이터베이스에 대한 권한을 제어하는 언어
+  - GRANT, REVOKE 등
 
 ---
 
@@ -162,7 +233,7 @@ CREATE TABLE Person (
 
 - `CREATE TABLE`: 테이블 생성
 - `PRIMARY KEY`: 기본키 지정
-- *`AUTO_INCREMENT`: 자동 증가
+- \*`AUTO_INCREMENT`: 자동 증가
 - `VARCHAR(50)`: 가변 길이 문자열 타입, 최대 길이 50
 - `INT`: 정수 타입
 - 이외에도 `CHAR`, `TEXT`, `DATE`, `DATETIME` 등 다양한 타입이 있음
@@ -193,10 +264,11 @@ ADD COLUMN address_id BIGINT;
 ## DML - SELECT
 
 ```sql [0|1|2|3]
-SELECT * 
+SELECT *
 FROM Person
 WHERE age > 20;
 ```
+
 <!-- .element: data-id="code" -->
 
 - `SELECT`: 데이터를 조회하는 명령어
@@ -247,7 +319,6 @@ LEFT OUTER JOIN Address
   - `INNER`, `LEFT OUTER`, `RIGHT OUTER`, `FULL OUTER` 등이 있음
 - `ON`: 조인 조건을 지정
 
-
 ---
 
 <!-- .slide: data-auto-animate -->
@@ -255,8 +326,6 @@ LEFT OUTER JOIN Address
 # 2. SQL
 
 ## DML - JOIN
-
-
 
 ---
 
@@ -312,8 +381,8 @@ LIMIT 10
 OFFSET 10;
 ```
 
-- *`LIMIT`: 조회할 데이터의 개수를 제한
-- *`OFFSET`: 조회할 데이터의 시작 위치를 지정
+- \*`LIMIT`: 조회할 데이터의 개수를 제한
+- \*`OFFSET`: 조회할 데이터의 시작 위치를 지정
 
 ---
 
@@ -331,13 +400,14 @@ CREATE TABLE Person (
 );
 ```
 
-* Person 테이블에서 나이가 20살 이상인 데이터만 조회하시오.
+- Person 테이블에서 나이가 20살 이상인 데이터만 조회하시오.
 
 ```sql
 SELECT *
 FROM Person
 WHERE age >= 20;
 ```
+
 <!-- .element: class="fragment" -->
 
 ---
@@ -356,7 +426,7 @@ CREATE TABLE Person (
 );
 ```
 
-* 나이가 20살 이상, 30살 미만인 데이터만 뽑아서 각 나이 별 인원을 집계하고, 2명 이상인 그룹들을 뽑아 나이 순으로 정렬하시오.
+- 나이가 20살 이상, 30살 미만인 데이터만 뽑아서 각 나이 별 인원을 집계하고, 2명 이상인 그룹들을 뽑아 나이 순으로 정렬하시오.
 
 ```sql
 SELECT age, COUNT(*)
@@ -366,6 +436,7 @@ GROUP BY age
 HAVING COUNT(*) > 1
 ORDER BY age;
 ```
+
 <!-- .element: class="fragment" -->
 
 ---
@@ -384,16 +455,15 @@ CREATE TABLE Person (
 );
 ```
 
-* Person 테이블에서 나이가 제일 적은 사람을 제외하고, 모든 사람을 조회하시오.
+- Person 테이블에서 나이가 제일 적은 사람을 제외하고, 모든 사람을 조회하시오.
 
 ```sql
 SELECT DISTINCT p1.*
 FROM Person p1, Person p2
 WHERE p1.age > p2.age;
 ```
+
 <!-- .element: class="fragment" -->
-
-
 
 ---
 
@@ -411,7 +481,7 @@ CREATE TABLE Person (
 );
 ```
 
-* Person 테이블에서 나이가 제일 적은 사람만 조회하시오.
+- Person 테이블에서 나이가 제일 적은 사람만 조회하시오.
 
 ```sql
 SELECT p1.*
@@ -420,6 +490,7 @@ LEFT OUTER JOIN Person p2
   ON p1.age > p2.age
 WHERE p2.age IS NULL;
 ```
+
 <!-- .element: class="fragment" -->
 
 ---
@@ -567,7 +638,6 @@ REVOKE ALL PRIVILEGES ON Wapang.* FROM 'user'@'%';
 ## MySQL 고유 문법
 
 - `LIMIT`과 `OFFSET` 대신 `LIMIT 10, 10`으로 사용
-
 
 ---
 
