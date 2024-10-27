@@ -164,3 +164,9 @@ p:has(> img) {
   display: flex !important;
   justify-content: center;
 }
+
+pre.break-all > code > span {
+    white-space: pre-wrap;
+    word-break: break-all;
+    word-wrap: break-word;
+}

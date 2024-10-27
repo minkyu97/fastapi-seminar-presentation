@@ -9,4 +9,5 @@ Reveal.initialize({
   slideNumber: true,
   showNotes: true,
   pdfSeparateFragments: false,
+  hash: true,
 })
