@@ -25,12 +25,12 @@ section {
 }
 
 h1 {
-  font-size: 4rem;
+  font-size: 3rem;
   margin: 0 0 1rem 0;
 }
 
 h2 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin: 0 0 3rem 0;
 }
 
@@ -101,6 +101,10 @@ pre.code-wrapper {
   display: flex !important;
   justify-content: center;
   align-items: center;
+
+  & h1 {
+    font-size: 4rem;
+  }
 }
 
 p:has(> img) {
@@ -165,7 +169,7 @@ p:has(> img) {
   justify-content: center;
 }
 
-pre.break-all > code > span {
+pre.break-all * {
     white-space: pre-wrap;
     word-break: break-all;
     word-wrap: break-word;

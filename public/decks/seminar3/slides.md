@@ -436,8 +436,22 @@ def get_user_store() -> UserStore:
 
 - 쿠키: 클라이언트(브라우저 등)에 저장되는 작은 데이터 조각
 - 세션: 서버에 저장되는 클라이언트 정보
-  - 세션 ID를 저장하기 위해 쿠키를 사용함
+  - 세션 ID는 클라이언트에 저장되며, 쿠키를 사용할 수도 있음
   - 세션 정보는 인증 서버에 저장됨
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 1. 유저 인증과 인가
+
+## Stateless 란?
+
+- Stateless: 상태를 저장하지 않는 것
+- 기본적으로 HTTP 프로토콜은 Stateless하다.
+  - 즉, 이전 요청과 다음 요청이 서로 독립적
+  - 하지만 유용한 애플리케이션은, 어딘가에 정보를 저장해야함 (서버 vs 클라이언트)
+- 서버가 Stateless하고 싶다면, 클라이언트에서 상태를 저장하고 매 요청마다 보내줘야 함
 
 ---
 
@@ -450,6 +464,7 @@ def get_user_store() -> UserStore:
 ![Session-Based Authentication](session-based-authentication.png) <!-- .element: style="width: 60%" -->
 
 - 세션 기반 인증은 서버에 세션 정보를 저장하고, 클라이언트에 세션 ID를 전달함
+  - 즉 양쪽 모두 Stateful
 - 세션 ID를 이용해서 서버에 저장된 세션 정보를 조회하고, 사용자를 식별함
 
 ---
@@ -463,65 +478,11 @@ def get_user_store() -> UserStore:
 ![Token-Based Authentication](token-based-authentication.png) <!-- .element: style="width: 60%" -->
 
 - 토큰 기반 인증은 클라이언트에 세션 ID가 아니라, 토큰을 저장함
-- 토큰: 사용자 정보를 담은 문자열
-- 서버에는 유저 정보를 저장하지 않음 (Stateless)
+  - 토큰: 사용자 정보를 담은 문자열
+  - 서버 입장에서 Stateless
+- 서버는 특정 알고리즘을 이용해서 토큰을 검증하고, 사용자를 식별함
 
 ---
-
-<!-- .slide: data-auto-animate -->
-
-# 1. 유저 인증과 인가
-
-## Stateless 란?
-
-- Stateless: 상태를 저장하지 않는 것
-- 서버는 클라이언트의 상태를 저장하지 않음
-- 클라이언트가 요청을 보낼 때마다, 모든 정보를 함께 보내야 함
-
----
-
-<!-- .slide: data-auto-animate -->
-
-# 1. 유저 인증과 인가
-
-## Stateless 란?
-
-```python [1:]
-mem = {}
-
-def fibonacci(n: int) -> int:
-    if n in mem:
-        return mem[n]
-    if n <= 1:
-        return n
-    mem[n] = fibonacci(n - 1) + fibonacci(n - 2)
-    return mem[n]
-```
-
----
-
-<!-- .slide: data-auto-animate -->
-
-# 1. 유저 인증과 인가
-
-## Stateless 란?
-
-```python [1:]
-def fibonacci(n: int) -> int:
-    return stateless_fibonacci(n, {})
-
-def stateless_fibonacci(n: int, mem: dict[int, int]) -> int:
-    if n in mem:
-        return mem[n]
-    if n <= 1:
-        return n
-    mem[n] = stateless_fibonacci(n - 1, mem) + stateless_fibonacci(n - 2, mem)
-    return mem[n]
-```
-
-
----
-
 
 <!-- .slide: data-auto-animate -->
 
@@ -537,6 +498,31 @@ def stateless_fibonacci(n: int, mem: dict[int, int]) -> int:
   - 페이로드: base64 인코딩된 사용자 정보 (claim의 집합)
   - 서명: 헤더와 페이로드를 암호화한 값 (HS256, RS256 이 가장 보편적)
 
+---
+
+<!-- .slide: data-auto-animate -->
+
+# 1. 유저 인증과 인가
+
+## JWT (JSON Web Token)
+
+### 응답
+```http [1:]
+HTTP/1.1 200 OK
+Set-Cookie: access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c; HttpOnly; Secure
+```
+<!-- .element: class="break-all" -->
+
+### 요청
+```http [1:]
+GET /me HTTP/1.1
+Cookie: access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+<!-- .element: class="break-all" -->
+
+- JWT 자체는 Stateless하므로, 클라이언트에서 Stateful한 기술들을 활용해서 저장해야함
+- 가장 간단하고 대표적인 방법이 쿠키
+- `Set-Cookie` 헤더를 이용해서 클라이언트에 토큰을 저장하도록 요청
 
 ---
 
@@ -546,17 +532,25 @@ def stateless_fibonacci(n: int, mem: dict[int, int]) -> int:
 
 ## JWT (JSON Web Token)
 
-```http
-GET /me HTTP/1.1
+### 응답
+```http [1:]
+HTTP/1.1 200 OK
+Content-Type: application/json
 
+{"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"}
+```
+<!-- .element: class="break-all" -->
+
+### 요청
+```http [1:]
+GET /me HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 ``` 
 <!-- .element: class="break-all" -->
 
-- 인증키의 전달에는 보통 `Authorization` 헤더를 사용함
-- `Authorization` 헤더는 scheme과 parameters로 구성됨
-- 토큰을 전달할 때는 `Bearer` scheme를 사용하는 것이 보편적
-
+- 헤더를 사용하는 방법도 있으며, 보통 `Authorization` 헤더를 사용함
+- 이 경우 토큰은 쿠키가 아니라 클라이언트의 메모리나 로컬 스토리지에 저장
+- 쿠키와 헤더를 사용하는 방법은 각각 장단점이 있으므로, 상황에 맞게 사용하면 됨
 
 ---
 
@@ -656,17 +650,29 @@ DEBUG=true
 
 ## Open API Specification
 
+![openapi-example](openapi-example.png) <!-- .element: style="width: 35%" -->
+
 - 프레임워크에 종속받지 않는 API 문서 작성법이 필요
 - Open API Specification은 JSON 또는 YAML로 작성되는 API 문서 작성 표준
-- Swagger UI, ReDoc 등의 도구와 결합해서 API 문서를 자동으로 시각화할 수 있음
+- Swagger UI, ReDoc 등의 도구와 결합해서 API 문서를 Web UI로 제공할 수 있음
 
 ---
 
 <!-- .slide: data-auto-animate -->
 
-# 3. Automatic Docs
+# 3. API 문서화
+
+## Automatic Docs
+
+![fastapi-swagger-example](fastapi-swagger-example.png) <!-- .element: style="width: 60%; box-shadow: black 0.2rem 0.2rem 0.5rem" -->
 
 - API 문서를 별도로 작성하는 것은 번거롭고, 유지보수가 어려움
-- 이를 위해 FastAPI는 Open API Specification을 자동으로 생성해주는 기능을 제공함
-- 엔드포인트 정의 시 API 문서화에 도움이 되는 여러 메타데이터를 전달할 수 있음
+- FastAPI는 Open API Specification을 자동으로 생성해주며, Swagger와 Redoc도 내장
+- 필요하다면 엔드포인트 정의 시 API 문서화에 도움이 되는 여러 메타데이터를 전달할 수 있음
 - `/docs`, `/redoc` 엔드포인트를 통해 API 문서를 확인할 수 있음
+
+---
+
+<!-- .slide: data-auto-animate class="section-title" -->
+
+# 끗
