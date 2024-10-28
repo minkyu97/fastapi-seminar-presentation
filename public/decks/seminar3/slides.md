@@ -432,9 +432,10 @@ def get_user_store() -> UserStore:
 
 ## 쿠키와 세션
 
-![Cookie & Session](cookie-session.png) <!-- .element: style="width: 60%" -->
+![Cookie & Session](cookie-session.png) <!-- .element: style="width: 50%" -->
 
 - 쿠키: 클라이언트(브라우저 등)에 저장되는 작은 데이터 조각
+  - HTTP Management Mechanism ([RFC 6265](https://datatracker.ietf.org/doc/html/rfc6265))
 - 세션: 서버에 저장되는 클라이언트 정보
   - 세션 ID는 클라이언트에 저장되며, 쿠키를 사용할 수도 있음
   - 세션 정보는 인증 서버에 저장됨
