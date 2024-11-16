@@ -170,7 +170,18 @@ p:has(> img) {
 }
 
 pre.break-all * {
-    white-space: pre-wrap;
-    word-break: break-all;
-    word-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+.image-slide {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+
+  > * {
+    flex: 1 1 0;
+  }
 }
