@@ -2,7 +2,7 @@
 
 # FastAPI Seminar
 
-## Week 4: Asyc FastAPI
+## Week 4: Async FastAPI
 
 By: 이민규
 
