@@ -185,3 +185,11 @@ pre.break-all * {
     flex: 1 1 0;
   }
 }
+
+.horizontal p {
+  display: flex !important;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
